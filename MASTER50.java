@@ -97,15 +97,29 @@ public class MASTER50 {
 		}
 		catch (Exception e) {}
 		
-		// POUR LE PARALLELE, CREER TOUS LES THREADS DANS UNE BOUCLE
-		// LES PLACER DANS UNE LISTE
-		// TOUT LANCER
-		// On considère arbitrairement que le premier ordinateur de la liste sera celui sur lequel on copiera les UM:
+
+		List <ThreadStandard> s_copy_split_list = new ArrayList <ThreadStandard> ();
+		List <ThreadError> e_copy_split_list = new ArrayList <ThreadError> ();
+		List <ThreadStandard> s_copy_jar_list = new ArrayList <ThreadStandard> ();
+		List <ThreadError> e_copy_jar_list = new ArrayList <ThreadError> ();
+		List <ThreadStandard> s_mkdir_list = new ArrayList <ThreadStandard> ();
+		List <ThreadError> e_mkdir_list = new ArrayList <ThreadError> ();
+		List <ThreadStandard> s_mkdir_UMs_list = new ArrayList <ThreadStandard> ();
+		List <ThreadError> e_mkdir_UMs_list = new ArrayList <ThreadError> ();
+		List <ThreadStandard> s_mkdir_SMs_list = new ArrayList <ThreadStandard> ();
+		List <ThreadError> e_mkdir_SMs_list = new ArrayList <ThreadError> ();
+		List <ThreadStandard> s_mkdir_RMs_list = new ArrayList <ThreadStandard> ();
+		List <ThreadError> e_mkdir_RMs_list = new ArrayList <ThreadError> ();
+		List <ThreadStandard> s_write_UM_list = new ArrayList <ThreadStandard> ();
+		List <ThreadError> e_write_UM_list = new ArrayList <ThreadError> ();
+		List <ArrayBlockingQueue<String>> queue_list = new ArrayList <ArrayBlockingQueue<String>> ();
+		
+		
         	for (int i = 0; i < 3 ; i++) {
         	// process.join
-        	// créer des threads machine (master, numeromachine)
-            long timeout_1 = 2000;
+        		long timeout_1 = 2000;
         		ArrayBlockingQueue<String> queue = new ArrayBlockingQueue <> (1000);
+        		
             ThreadStandard s_copy_split = new ThreadStandard("scp -r -p /tmp/ncluzel/S" + Integer.toString(i) + ".txt" + " ncluzel@" + computers_in_network.get(i) + ":/tmp/ncluzel/splits/S" + Integer.toString(i) + ".txt", queue);
             ThreadError e_copy_split = new ThreadError("scp -r -p /tmp/ncluzel/S" + Integer.toString(i) + ".txt" +  " ncluzel@" + computers_in_network.get(i) + ":/tmp/ncluzel/splits/S" + Integer.toString(i) + ".txt", queue);
             ThreadStandard s_copy_jar = new ThreadStandard("scp -r -p /tmp/ncluzel/slave_5.jar ncluzel@" + computers_in_network.get(i) + ":/tmp/ncluzel/slave_5.jar", queue);
@@ -123,58 +137,98 @@ public class MASTER50 {
             ThreadStandard s_write_UM = new ThreadStandard("ssh ncluzel@" + computers_in_network.get(i) + " java -jar /tmp/ncluzel/slave_5.jar " + "0 " + Integer.toString(i), queue);
             ThreadError e_write_UM = new ThreadError("ssh ncluzel@" + computers_in_network.get(i) + " java -jar /tmp/ncluzel/slave_5.jar " + "0 " + Integer.toString(i), queue);
             
-            
-            
-
             map.put("UM" + Integer.toString(i), computers_in_network.get(i));
-            s_test_response.start();
-            e_test_response.start(); 
+            
+            s_copy_split_list.add(s_copy_split);
+            e_copy_split_list.add(e_copy_split);
+            s_copy_jar_list.add(s_copy_jar);
+            e_copy_jar_list.add(e_copy_jar);
+            s_mkdir_list.add(s_mkdir);
+            e_mkdir_list.add(e_mkdir);
+            s_mkdir_UMs_list.add(s_mkdir_UMs);
+            e_mkdir_UMs_list.add(e_mkdir_UMs);
+            s_mkdir_SMs_list.add(s_mkdir_SMs);
+            e_mkdir_SMs_list.add(e_mkdir_SMs);
+            s_mkdir_RMs_list.add(s_mkdir_RMs);
+            e_mkdir_RMs_list.add(e_mkdir_RMs);
+            s_write_UM_list.add(s_write_UM);
+            e_write_UM_list.add(e_write_UM);
+            queue_list.add(queue);
+            
+        	}
             
             try {
-            	String test = queue.poll(timeout_1, TimeUnit.MILLISECONDS);
-            		if(test == null) {
-            			s_test_response.interrupt();
-            			e_test_response.interrupt();
-            		}
-            }
-            
-            catch (Exception e) {}
-            
-            try {
-        		s_mkdir.start();
-        		e_mkdir.start();
-        		s_mkdir_UMs.start();
-        		e_mkdir_UMs.start();
-        		s_mkdir_SMs.start();
-        		e_mkdir_SMs.start();
-        		s_mkdir_RMs.start();
-        		e_mkdir_RMs.start();
-        		s_copy_split.start();
-        		e_copy_split.start();
-        		s_copy_jar.start();
-        		e_copy_jar.start();
+            	
+            	for (int i = 0; i < s_mkdir_list.size(); i++)
+            	{
+            	s_mkdir_list.get(i).start();
+            	e_mkdir_list.get(i).start();
+            	}
+            	for (int i = 0; i < s_mkdir_list.size(); i++)
+            	{
+            	s_mkdir_UMs_list.get(i).start();
+            	e_mkdir_UMs_list.get(i).start();
+            	}
+            	for (int i = 0; i < s_mkdir_list.size(); i++)
+            	{
+            	s_mkdir_SMs_list.get(i).start();
+            	e_mkdir_SMs_list.get(i).start();
+            	}
+            	for (int i = 0; i < s_mkdir_list.size(); i++)
+            	{
+            	s_mkdir_RMs_list.get(i).start();
+            	e_mkdir_RMs_list.get(i).start();
+            	}
+            	Thread.sleep(2000);
+            	for (int i = 0; i < s_mkdir_list.size(); i++)
+            	{
+            	s_copy_split_list.get(i).start();
+            	e_copy_split_list.get(i).start();
+            	}
+            	Thread.sleep(2000);
+            	for (int i = 0; i < s_mkdir_list.size(); i++)
+            	{
+            	s_copy_jar_list.get(i).start();
+            	e_copy_jar_list.get(i).start();
+            	}
         		Thread.sleep(2000);
-        		s_write_UM.start();
-        		e_write_UM.start();
+            	for (int i = 0; i < s_mkdir_list.size(); i++)
+            	{
+            	s_write_UM_list.get(i).start();
+            	e_write_UM_list.get(i).start();
+            	}
             }
             catch (Exception e) {}
         		
             try {
+            	for (int i = 0; i < queue_list.size(); i++)
+            	{	
             Thread.sleep(2000);
-            	System.out.println(queue.size());    
+            	System.out.println(queue_list.get(i).size());    
+            	long timeout_1 = 2000;
             	
-            	while(queue.size() != 0) 
+            	while(queue_list.get(i).size() != 0) 
             		{
-            			String test = queue.poll(timeout_1, TimeUnit.MILLISECONDS);
+            			String test = queue_list.get(i).poll(timeout_1, TimeUnit.MILLISECONDS);
             			System.out.println(test);
             			UMList.add(test.split(":")[0] + ":UM" + Integer.toString(i));
             		}
+            	}
             }
             
             catch (Exception e) {}            
             System.out.println(map);
             System.out.println(UMList);
-        }
+        
+
+        //System.out.println(s_copy_split_list);
+        //System.out.println(s_copy_jar_list);
+        //System.out.println(s_mkdir_list);
+        //System.out.println(s_mkdir_UMs_list);
+        //System.out.println(s_mkdir_SMs_list);
+        //System.out.println(s_mkdir_RMs_list);
+        //System.out.println(s_write_UM_list);        
+        
         
         System.out.println(UMList);
         
@@ -238,9 +292,12 @@ public class MASTER50 {
 
             s_copy_UM.start();
     			e_copy_UM.start();
+    			Thread.sleep(2000);
     		}
     		
     		catch (Exception e) {}
+    		
+    		
     		
     		System.out.println(UM_for_SM);
     		System.out.println(map);
