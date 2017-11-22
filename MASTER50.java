@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.io.PrintStream;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
@@ -52,10 +53,13 @@ public class MASTER50 {
 		List <String> computers_in_network = new ArrayList <String> ();
         List <String> pool_of_computers = readAndStoreIP("/Users/cluclu/Documents/IP_Hadoop.txt");        
         Map<String, String> map = new HashMap<String, String>();
+        Map<String, String> map_RM = new HashMap<String, String>();
 		List <String> UMList = new ArrayList <String>();
+		List <String> RMList = new ArrayList <String>();
 		List <String> UMList_tot = new ArrayList <String>();
 		List <String> UMList_values = new ArrayList <String>();
 		ConcurrentHashMap<String, List <String>> dictUM = new ConcurrentHashMap <String, List <String>>();
+		ConcurrentHashMap<String, List <String>> dictRM = new ConcurrentHashMap <String, List <String>>();
 		ConcurrentHashMap<String, String> dictUM_content = new ConcurrentHashMap <String, String>();
 		ArrayBlockingQueue<String> pool_queue = new ArrayBlockingQueue <> (1000);
 		long timeout_pool = 2000;
@@ -116,14 +120,15 @@ public class MASTER50 {
 		List <ThreadError> e_copy_UM_list = new ArrayList <ThreadError> ();
 		List <ThreadStandard> s_write_SM_list = new ArrayList <ThreadStandard> ();
 		List <ThreadError> e_write_SM_list = new ArrayList <ThreadError> ();
+		List <ThreadStandard> s_copy_RM_list = new ArrayList <ThreadStandard> ();
+		List <ThreadError> e_copy_RM_list = new ArrayList <ThreadError> ();
 		List <ArrayBlockingQueue<String>> queue_list = new ArrayList <ArrayBlockingQueue<String>> ();
 		List <ArrayBlockingQueue<String>> queue_list_2 = new ArrayList <ArrayBlockingQueue<String>> ();
 		List <String> UM_for_SM_list = new ArrayList <String> ();
 		ConcurrentHashMap<String, String> UM_for_SM_dict = new ConcurrentHashMap <String, String>();
 		
         	for (int i = 0; i < 3 ; i++) {
-        	// process.join
-        		// warning long timeout_1 = 2000;
+
         		ArrayBlockingQueue<String> queue = new ArrayBlockingQueue <> (1000);
         		
             ThreadStandard s_copy_split = new ThreadStandard("scp -r -p /tmp/ncluzel/S" + Integer.toString(i) + ".txt" + " ncluzel@" + computers_in_network.get(i) + ":/tmp/ncluzel/splits/S" + Integer.toString(i) + ".txt", queue);
@@ -138,8 +143,6 @@ public class MASTER50 {
             ThreadError e_mkdir_SMs = new ThreadError("ssh ncluzel@" + computers_in_network.get(i) + " mkdir -p /tmp/ncluzel/SMs", queue);
             ThreadStandard s_mkdir_RMs = new ThreadStandard("ssh ncluzel@" + computers_in_network.get(i) + " mkdir -p /tmp/ncluzel/RMs", queue);
             ThreadError e_mkdir_RMs = new ThreadError("ssh ncluzel@" + computers_in_network.get(i) + " mkdir -p /tmp/ncluzel/RMs", queue);
-            // warning ThreadStandard s_test_response = new ThreadStandard("ssh ncluzel@" + computers_in_network.get(i) + " hostname", queue);
-            // warning ThreadError e_test_response = new ThreadError("ssh ncluzel@" + computers_in_network.get(i) + " hostname", queue);
             ThreadStandard s_write_UM = new ThreadStandard("ssh ncluzel@" + computers_in_network.get(i) + " java -jar /tmp/ncluzel/slave_5.jar " + "0 " + Integer.toString(i), queue);
             ThreadError e_write_UM = new ThreadError("ssh ncluzel@" + computers_in_network.get(i) + " java -jar /tmp/ncluzel/slave_5.jar " + "0 " + Integer.toString(i), queue);
             
@@ -246,19 +249,7 @@ public class MASTER50 {
             catch (Exception e) {}            
             System.out.println(map);
             System.out.println(UMList);
-        
-
-        //System.out.println(s_copy_split_list);
-        //System.out.println(s_copy_jar_list);
-        //System.out.println(s_mkdir_list);
-        //System.out.println(s_mkdir_UMs_list);
-        //System.out.println(s_mkdir_SMs_list);
-        //System.out.println(s_mkdir_RMs_list);
-        //System.out.println(s_write_UM_list);        
-        
-        
-        System.out.println(UMList);
-        
+                
         for (int j = 0; j < UMList.size() ; j++) {
         	for (int k = j; k < UMList.size() ; k++) {
         		
@@ -268,7 +259,6 @@ public class MASTER50 {
         		UMList.add(k, UMList.get(j).split(":")[0] + ":" + UMList.get(j).split(":")[1] + "," + UMList.get(k).split(":")[1]);
         		UMList.remove(j);
         		UMList.remove(k);
-        		;
         	}
         	
         	for (int l = 1; l < UMList.size() ; l++) {
@@ -278,7 +268,6 @@ public class MASTER50 {
         		UMList.add(l, UMList.get(0).split(":")[0] + ":" + UMList.get(0).split(":")[1] + "," + UMList.get(l).split(":")[1]);
         		UMList.remove(0);
         		UMList.remove(l);
-        		;
         	}
         	}
         	
@@ -295,6 +284,7 @@ public class MASTER50 {
         }
         	}
         }
+        
     	System.out.println(dictUM);
     	System.out.println("Phase de Map terminée.");
     	
@@ -319,7 +309,7 @@ public class MASTER50 {
     
     		s_copy_UM_list.add(s_copy_UM);
     		e_copy_UM_list.add(e_copy_UM);
-    		queue_list_2.add(queue);
+    		//queue_list_2.add(queue);
 
     		//List <ThreadStandard> s_write_SM_list = new ArrayList <ThreadStandard> ();
     		//List <ThreadError> e_write_SM_list = new ArrayList <ThreadError> ();
@@ -349,6 +339,8 @@ public class MASTER50 {
     		ThreadStandard s_write_SM = new ThreadStandard("ssh ncluzel@" + map.get(UMList_values.get(1)) + " java -jar /tmp/ncluzel/slave_5.jar " + "1 " + key + " " + UM_for_SM_dict.get(key), queue);
         	ThreadError e_write_SM = new ThreadError("ssh ncluzel@" + map.get(UMList_values.get(1)) + " java -jar /tmp/ncluzel/slave_5.jar " + "1 " + key + " " + UM_for_SM_dict.get(key), queue);
     		
+        	map_RM.put("RM" + key, map.get(UMList_values.get(1)));
+        	
         	s_write_SM_list.add(s_write_SM);
     		e_write_SM_list.add(e_write_SM);
     		queue_list_2.add(queue);
@@ -375,8 +367,67 @@ public class MASTER50 {
     		}
     		
     		catch (Exception e) {}
+
+    		System.out.println(map_RM);
     		
-    //	}
+    		//FUSION -------
+    		
+    		String result = "";
+    			
+    		for (String key : map_RM.keySet()) {	
+    			
+    			ArrayBlockingQueue<String> queue = new ArrayBlockingQueue <> (1000);
+    			
+    			ThreadStandard s_copy_RM = new ThreadStandard("scp -r -p ncluzel@" + map_RM.get(key) + ":/tmp/ncluzel/RMs/" + key + ".txt" + " /tmp/ncluzel/" + key + ".txt", queue);
+        		ThreadError e_copy_RM = new ThreadError("scp -r -p ncluzel@" + map_RM.get(key) + ":/tmp/ncluzel/RMs/" + key + ".txt" + " /tmp/ncluzel/" + key + ".txt", queue);
+    			
+        		s_copy_RM_list.add(s_copy_RM);
+        		e_copy_RM_list.add(e_copy_RM);
+    			
+    		}
+    		
+    		try {
+        		
+            	for (int i = 0; i < s_copy_RM_list.size(); i++)
+            	{
+            	s_copy_RM_list.get(i).start();
+            	e_copy_RM_list.get(i).start();
+            	}
+            	for (int i = 0; i < s_copy_RM_list.size(); i++)
+            	{
+            	s_copy_RM_list.get(i).join();
+            	e_copy_RM_list.get(i).join();
+            	}
+    		}
+    		
+    		catch (Exception e) {}
+    		
+    		for (String key : map_RM.keySet()) {	
+    			
+    		try
+    		{
+    			BufferedReader br = new BufferedReader(new FileReader("/tmp/ncluzel/" + key + ".txt"));
+    	        StringBuilder stringBuilder = new StringBuilder();
+    	        String line = br.readLine();
+    	        
+    	        while(line!=null) {
+    	            	result += line + "\n";
+
+    	            stringBuilder.append(System.lineSeparator());
+    	            line = br.readLine();
+    	        }
+    	        br.close();
+    		}		
+    		catch(IOException exp) {}    		
+    		}
+    		System.out.println(result);
+    		try {
+    			OutputStreamWriter fusion = new OutputStreamWriter(new FileOutputStream("/tmp/ncluzel/Resultat_final.txt"));
+    			fusion.write(result + "\n");
+    			fusion.close();
+    		}
+    		catch(Exception e) {}
+    		//------------------------ FUSION --------------------
 	}
 }
 
