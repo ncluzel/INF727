@@ -125,6 +125,7 @@ public class MASTER50 {
 		List <ArrayBlockingQueue<String>> queue_list = new ArrayList <ArrayBlockingQueue<String>> ();
 		List <ArrayBlockingQueue<String>> queue_list_2 = new ArrayList <ArrayBlockingQueue<String>> ();
 		List <String> UM_for_SM_list = new ArrayList <String> ();
+		List <Integer> RM_index_list = new ArrayList <Integer> ();
 		ConcurrentHashMap<String, String> UM_for_SM_dict = new ConcurrentHashMap <String, String>();
 		
         	for (int i = 0; i < 3 ; i++) {
@@ -342,23 +343,32 @@ public class MASTER50 {
     		
     		catch (Exception e) {}
     		
+    		Integer index_2 = 0;
+    		Map<String, String> map_key_indx = new HashMap<String, String>();
+    		
     		for (String key : dictUM.keySet()) {
     		ArrayBlockingQueue<String> queue = new ArrayBlockingQueue <> (1000);
     		UMList_values = dictUM.get(key);
     		
-    		if(UMList_values.size() > 1)
-    		{	
-    		ThreadStandard s_write_SM = new ThreadStandard("ssh ncluzel@" + map.get(UMList_values.get(0)) + " java -jar /tmp/ncluzel/slave_5.jar " + "1 " + key + " " + UM_for_SM_dict.get(key), queue);
-        	ThreadError e_write_SM = new ThreadError("ssh ncluzel@" + map.get(UMList_values.get(0)) + " java -jar /tmp/ncluzel/slave_5.jar " + "1 " + key + " " + UM_for_SM_dict.get(key), queue);
+    		//if(UMList_values.size() > 1)
+    		//{	
+    		//ThreadStandard s_write_SM = new ThreadStandard("ssh ncluzel@" + map.get(UMList_values.get(0)) + " java -jar /tmp/ncluzel/slave_5.jar " + "1 " + key + " " + UM_for_SM_dict.get(key), queue);
+        	//ThreadError e_write_SM = new ThreadError("ssh ncluzel@" + map.get(UMList_values.get(0)) + " java -jar /tmp/ncluzel/slave_5.jar " + "1 " + key + " " + UM_for_SM_dict.get(key), queue);
+        	ThreadStandard s_write_SM = new ThreadStandard("ssh ncluzel@" + map.get(UMList_values.get(0)) + " java -jar /tmp/ncluzel/slave_5.jar " + "1 " + key + " " + index_2.toString() + " " + UM_for_SM_dict.get(key), queue);
+        	ThreadError e_write_SM = new ThreadError("ssh ncluzel@" + map.get(UMList_values.get(0)) + " java -jar /tmp/ncluzel/slave_5.jar " + "1 " + key + " " + index_2.toString() +" " + UM_for_SM_dict.get(key), queue);
     		
-        	map_RM.put("RM" + key, map.get(UMList_values.get(0)));
+        	map_key_indx.put(index_2.toString(), key);
+        	
+        	map_RM.put("RM" + index_2, map.get(UMList_values.get(0)));
         	
         	s_write_SM_list.add(s_write_SM);
     		e_write_SM_list.add(e_write_SM);
     		queue_list_2.add(queue);
-    		}
+    		index_2+=1;
     		
-    		else
+    		//}
+    		
+    		/*else
     		{	
     		ThreadStandard s_write_SM = new ThreadStandard("ssh ncluzel@" + map.get(UMList_values.get(0)) + " java -jar /tmp/ncluzel/slave_5.jar " + "1 " + key + " " + UM_for_SM_dict.get(key), queue);
         	ThreadError e_write_SM = new ThreadError("ssh ncluzel@" + map.get(UMList_values.get(0)) + " java -jar /tmp/ncluzel/slave_5.jar " + "1 " + key + " " + UM_for_SM_dict.get(key), queue);
@@ -371,7 +381,7 @@ public class MASTER50 {
     		}
     		
     		System.out.println(map);
-    		System.out.println(UMList_values);
+    		System.out.println(UMList_values);*/
     		
     		}
     		
@@ -381,6 +391,8 @@ public class MASTER50 {
             	{
             	s_write_SM_list.get(i).start();
             	e_write_SM_list.get(i).start();
+            	//Thread.sleep(1000);
+            	//System.out.println("Je galère sur " + s_write_SM_list.get(i).getName());
             	}
     			
     			for (int i = 0; i < s_write_SM_list.size(); i++)
@@ -394,29 +406,42 @@ public class MASTER50 {
     		catch (Exception e) {}
 
     		System.out.println(map_RM);
+    		System.out.println(map_key_indx);
     		
     		//FUSION -------
     		
     		String result = "";
+    		Integer index = 0;
     			
     		for (String key : map_RM.keySet()) {	
     			
     			ArrayBlockingQueue<String> queue = new ArrayBlockingQueue <> (10000);
     			
-    			ThreadStandard s_copy_RM = new ThreadStandard("scp -r -p ncluzel@" + map_RM.get(key) + ":/tmp/ncluzel/RMs/" + key + ".txt" + " /tmp/ncluzel/" + key + ".txt", queue);
+    			//ThreadStandard s_copy_RM = new ThreadStandard("scp -r -p ncluzel@" + map_RM.get(key) + ":/tmp/ncluzel/RMs/" + key + ".txt" + " /tmp/ncluzel/RM" + key + ".txt", queue);
+        		//ThreadError e_copy_RM = new ThreadError("scp -r -p ncluzel@" + map_RM.get(key) + ":/tmp/ncluzel/RMs/" + key + ".txt" + " /tmp/ncluzel/RM" + key + ".txt", queue);
+        		ThreadStandard s_copy_RM = new ThreadStandard("scp -r -p ncluzel@" + map_RM.get(key) + ":/tmp/ncluzel/RMs/" + key + ".txt" + " /tmp/ncluzel/" + key + ".txt", queue);
         		ThreadError e_copy_RM = new ThreadError("scp -r -p ncluzel@" + map_RM.get(key) + ":/tmp/ncluzel/RMs/" + key + ".txt" + " /tmp/ncluzel/" + key + ".txt", queue);
-    			
+        		
         		s_copy_RM_list.add(s_copy_RM);
         		e_copy_RM_list.add(e_copy_RM);
-    			
+        		RM_index_list.add(index);
+        		index+=1;
+        		
+        		//System.out.println("Passage dans la boucle " + index);
     		}
+    		
+    		System.out.println("taille rmlist : " + s_copy_RM_list.size());
+    		
+    		
     		
     		try {
         		
             	for (int i = 0; i < s_copy_RM_list.size(); i++)
+            	//for (int i = 0; i < 11; i++)
             	{
             	s_copy_RM_list.get(i).start();
             	e_copy_RM_list.get(i).start();
+            	//System.out.println(s_copy_RM_list.get(i).getName());
             	}
             	for (int i = 0; i < s_copy_RM_list.size(); i++)
             	{
@@ -427,13 +452,18 @@ public class MASTER50 {
     		
     		catch (Exception e) {}
     		
-    		System.out.println(map_RM.keySet());
-    		System.out.println(map_RM.keySet().size());
+    		//System.out.println(map_RM.keySet());
+    		//System.out.println(map_RM.keySet().size());
     		
-    		for (String key : map_RM.keySet()) {	
+    		//System.out.println(RM_index_list.size());	
     		
+    		//for (Integer RM_index : RM_index_list ) {
+    		//for (Integer RM_index = 0; RM_index < 11; RM_index ++ ) {
+    		//System.out.println("lecture de l index " + RM_index);
+    		for (String key : map_RM.keySet()) {
     		try
     		{
+    			//BufferedReader br = new BufferedReader(new FileReader("/tmp/ncluzel/RM" + RM_index + ".txt"));
     			BufferedReader br = new BufferedReader(new FileReader("/tmp/ncluzel/" + key + ".txt"));
     	        StringBuilder stringBuilder = new StringBuilder();
     	        String line = br.readLine();
@@ -456,6 +486,7 @@ public class MASTER50 {
     		}
     		catch(Exception e) {}
     		//------------------------ FUSION --------------------
+    		// Utiliser un entier à assigner à une clé.
 	}
 }
 

@@ -68,11 +68,12 @@ public class SLAVE_3{
 	    		
 	    		String key = args[1];
 	    		List <String> values = new ArrayList <String>();
-	    		OutputStreamWriter out = new OutputStreamWriter(new FileOutputStream("/tmp/ncluzel/SMs/SM" + args[1] + ".txt"));
-	    		OutputStreamWriter out_r = new OutputStreamWriter(new FileOutputStream("/tmp/ncluzel/RMs/RM" + args[1] + ".txt"));
+	    		OutputStreamWriter out = new OutputStreamWriter(new FileOutputStream("/tmp/ncluzel/SMs/SM" + args[2] + ".txt"));
+	    		OutputStreamWriter out_r = new OutputStreamWriter(new FileOutputStream("/tmp/ncluzel/RMs/RM" + args[2] + ".txt"));
 	    		int c = 0;
 	    		
-	    		for (int k = 2; k < args.length; k++) {	    		
+	    		//for (int k = 2; k < args.length; k++) {	
+	    		for (int k = 3; k < args.length; k++) {	 
  		
 	    		try (BufferedReader br = new BufferedReader(new FileReader(args[k]))) {
 	    	        StringBuilder stringBuilder = new StringBuilder();
@@ -96,7 +97,7 @@ public class SLAVE_3{
 	    	    }
 	    		out.close();
 	    		
-	    		try (BufferedReader br = new BufferedReader(new FileReader("/tmp/ncluzel/SMs/SM" + args[1] + ".txt"))) {
+	    		try (BufferedReader br = new BufferedReader(new FileReader("/tmp/ncluzel/SMs/SM" + args[2] + ".txt"))) {
 	    	        StringBuilder stringBuilder = new StringBuilder();
 	    	        String line = br.readLine();
 
