@@ -173,17 +173,17 @@ public class MASTER50 {
             	s_mkdir_list.get(i).start();
             	e_mkdir_list.get(i).start();
             	}
-            	for (int i = 0; i < s_mkdir_list.size(); i++)
+            	for (int i = 0; i < s_mkdir_UMs_list.size(); i++)
             	{
             	s_mkdir_UMs_list.get(i).start();
             	e_mkdir_UMs_list.get(i).start();
             	}
-            	for (int i = 0; i < s_mkdir_list.size(); i++)
+            	for (int i = 0; i < s_mkdir_SMs_list.size(); i++)
             	{
             	s_mkdir_SMs_list.get(i).start();
             	e_mkdir_SMs_list.get(i).start();
             	}
-            	for (int i = 0; i < s_mkdir_list.size(); i++)
+            	for (int i = 0; i < s_mkdir_RMs_list.size(); i++)
             	{
             	s_mkdir_RMs_list.get(i).start();
             	e_mkdir_RMs_list.get(i).start();
@@ -200,29 +200,29 @@ public class MASTER50 {
             	s_mkdir_RMs_list.get(i).join();
             	e_mkdir_RMs_list.get(i).join();
             	}
-            	for (int i = 0; i < s_mkdir_list.size(); i++)
+            	for (int i = 0; i < s_copy_split_list.size(); i++)
             	{
             	s_copy_split_list.get(i).start();
             	e_copy_split_list.get(i).start();
             	}
             	//Thread.sleep(2000);
-            	for (int i = 0; i < s_mkdir_list.size(); i++)
+            	for (int i = 0; i < s_copy_split_list.size(); i++)
             	{
             	s_copy_split_list.get(i).join();
             	e_copy_split_list.get(i).join();
             	}
-            	for (int i = 0; i < s_mkdir_list.size(); i++)
+            	for (int i = 0; i < s_copy_jar_list.size(); i++)
             	{
             	s_copy_jar_list.get(i).start();
             	e_copy_jar_list.get(i).start();
             	}
         		//Thread.sleep(2000);
-            	for (int i = 0; i < s_mkdir_list.size(); i++)
+            	for (int i = 0; i < s_copy_jar_list.size(); i++)
             	{
             	s_copy_jar_list.get(i).join();
             	e_copy_jar_list.get(i).join();
             	}
-            	for (int i = 0; i < s_mkdir_list.size(); i++)
+            	for (int i = 0; i < s_write_UM_list.size(); i++)
             	{
             	s_write_UM_list.get(i).start();
             	e_write_UM_list.get(i).start();
@@ -304,15 +304,24 @@ public class MASTER50 {
     		
     		UM_for_SM_list.add(UM_for_SM);
     		UM_for_SM_dict.put(key, UM_for_SM);
-    		ThreadStandard s_copy_UM = new ThreadStandard("scp -r -p ncluzel@" + map.get(UMList_values.get(0)) + ":/tmp/ncluzel/UMs/" + UMList_values.get(0) + ".txt" + " ncluzel@" + map.get(UMList_values.get(1)) + ":/tmp/ncluzel/UMs/" + UMList_values.get(0) + ".txt", queue);
-    		ThreadError e_copy_UM = new ThreadError("scp -r -p ncluzel@" + map.get(UMList_values.get(0)) + ":/tmp/ncluzel/UMs/" + UMList_values.get(0) + ".txt" + " ncluzel@" + map.get(UMList_values.get(1)) + ":/tmp/ncluzel/UMs/" + UMList_values.get(0) + ".txt", queue);
-    
+    		
+    		if(UMList_values.size() > 1)
+    		{	
+    		for (int p = 1; p <UMList_values.size(); p++) {
+    			
+    		//ThreadStandard s_copy_UM = new ThreadStandard("scp -r -p ncluzel@" + map.get(UMList_values.get(0)) + ":/tmp/ncluzel/UMs/" + UMList_values.get(0) + ".txt" + " ncluzel@" + map.get(UMList_values.get(1)) + ":/tmp/ncluzel/UMs/" + UMList_values.get(0) + ".txt", queue);
+    		//ThreadError e_copy_UM = new ThreadError("scp -r -p ncluzel@" + map.get(UMList_values.get(0)) + ":/tmp/ncluzel/UMs/" + UMList_values.get(0) + ".txt" + " ncluzel@" + map.get(UMList_values.get(1)) + ":/tmp/ncluzel/UMs/" + UMList_values.get(0) + ".txt", queue);
+    		ThreadStandard s_copy_UM = new ThreadStandard("scp -r -p ncluzel@" + map.get(UMList_values.get(p)) + ":/tmp/ncluzel/UMs/" + UMList_values.get(p) + ".txt" + " ncluzel@" + map.get(UMList_values.get(0)) + ":/tmp/ncluzel/UMs/" + UMList_values.get(p) + ".txt", queue);
+        	ThreadError e_copy_UM = new ThreadError("scp -r -p ncluzel@" + map.get(UMList_values.get(p)) + ":/tmp/ncluzel/UMs/" + UMList_values.get(p) + ".txt" + " ncluzel@" + map.get(UMList_values.get(0)) + ":/tmp/ncluzel/UMs/" + UMList_values.get(p) + ".txt", queue);
+        		
     		s_copy_UM_list.add(s_copy_UM);
     		e_copy_UM_list.add(e_copy_UM);
     		//queue_list_2.add(queue);
-
+    		}
+    		}
     		//List <ThreadStandard> s_write_SM_list = new ArrayList <ThreadStandard> ();
     		//List <ThreadError> e_write_SM_list = new ArrayList <ThreadError> ();
+    		System.out.println(UMList_values);
     		System.out.println(UM_for_SM);
     	
     	}
@@ -336,15 +345,31 @@ public class MASTER50 {
     		for (String key : dictUM.keySet()) {
     		ArrayBlockingQueue<String> queue = new ArrayBlockingQueue <> (1000);
     		UMList_values = dictUM.get(key);
-    		ThreadStandard s_write_SM = new ThreadStandard("ssh ncluzel@" + map.get(UMList_values.get(1)) + " java -jar /tmp/ncluzel/slave_5.jar " + "1 " + key + " " + UM_for_SM_dict.get(key), queue);
-        	ThreadError e_write_SM = new ThreadError("ssh ncluzel@" + map.get(UMList_values.get(1)) + " java -jar /tmp/ncluzel/slave_5.jar " + "1 " + key + " " + UM_for_SM_dict.get(key), queue);
     		
-        	map_RM.put("RM" + key, map.get(UMList_values.get(1)));
+    		if(UMList_values.size() > 1)
+    		{	
+    		ThreadStandard s_write_SM = new ThreadStandard("ssh ncluzel@" + map.get(UMList_values.get(0)) + " java -jar /tmp/ncluzel/slave_5.jar " + "1 " + key + " " + UM_for_SM_dict.get(key), queue);
+        	ThreadError e_write_SM = new ThreadError("ssh ncluzel@" + map.get(UMList_values.get(0)) + " java -jar /tmp/ncluzel/slave_5.jar " + "1 " + key + " " + UM_for_SM_dict.get(key), queue);
+    		
+        	map_RM.put("RM" + key, map.get(UMList_values.get(0)));
         	
         	s_write_SM_list.add(s_write_SM);
     		e_write_SM_list.add(e_write_SM);
     		queue_list_2.add(queue);
+    		}
+    		
+    		else
+    		{	
+    		ThreadStandard s_write_SM = new ThreadStandard("ssh ncluzel@" + map.get(UMList_values.get(0)) + " java -jar /tmp/ncluzel/slave_5.jar " + "1 " + key + " " + UM_for_SM_dict.get(key), queue);
+        	ThreadError e_write_SM = new ThreadError("ssh ncluzel@" + map.get(UMList_values.get(0)) + " java -jar /tmp/ncluzel/slave_5.jar " + "1 " + key + " " + UM_for_SM_dict.get(key), queue);
+    		
+        	map_RM.put("RM" + key, map.get(UMList_values.get(0)));
         	
+        	s_write_SM_list.add(s_write_SM);
+    		e_write_SM_list.add(e_write_SM);
+    		queue_list_2.add(queue);
+    		}
+    		
     		System.out.println(map);
     		System.out.println(UMList_values);
     		
@@ -376,7 +401,7 @@ public class MASTER50 {
     			
     		for (String key : map_RM.keySet()) {	
     			
-    			ArrayBlockingQueue<String> queue = new ArrayBlockingQueue <> (1000);
+    			ArrayBlockingQueue<String> queue = new ArrayBlockingQueue <> (10000);
     			
     			ThreadStandard s_copy_RM = new ThreadStandard("scp -r -p ncluzel@" + map_RM.get(key) + ":/tmp/ncluzel/RMs/" + key + ".txt" + " /tmp/ncluzel/" + key + ".txt", queue);
         		ThreadError e_copy_RM = new ThreadError("scp -r -p ncluzel@" + map_RM.get(key) + ":/tmp/ncluzel/RMs/" + key + ".txt" + " /tmp/ncluzel/" + key + ".txt", queue);
@@ -402,8 +427,11 @@ public class MASTER50 {
     		
     		catch (Exception e) {}
     		
+    		System.out.println(map_RM.keySet());
+    		System.out.println(map_RM.keySet().size());
+    		
     		for (String key : map_RM.keySet()) {	
-    			
+    		
     		try
     		{
     			BufferedReader br = new BufferedReader(new FileReader("/tmp/ncluzel/" + key + ".txt"));
